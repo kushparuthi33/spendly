@@ -19,8 +19,13 @@
             on budget — without the spreadsheet headache.
         </p>
         <div class="hero-actions">
-            <a href="{{ url_for('register') }}" class="btn-primary">Create free account</a>
-            <button class="btn-ghost" id="open-demo-modal">See how it works</button>
+            {% if session.user_id %}
+                <a href="{{ url_for('profile') }}" class="btn-primary">View profile</a>
+                <a href="{{ url_for('dashboard') }}" class="btn-ghost">Go to dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn-primary">Create free account</a>
+                <button class="btn-ghost" id="open-demo-modal">See how it works</button>
+            {% endif %}
         </div>
     </div>
     <div class="hero-visual">
@@ -93,9 +98,15 @@
 
 <section class="cta-section">
     <div class="cta-inner">
-        <h2 class="cta-title">Ready to take control?</h2>
-        <p class="cta-body">Join thousands of people who track their expenses with Spendly.</p>
-        <a href="{{ url_for('register') }}" class="btn-primary">Create free account</a>
+        {% if session.user_id %}
+            <h2 class="cta-title">Welcome back, {{ session.user_name }}!</h2>
+            <p class="cta-body">Pick up where you left off — your expenses are waiting.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn-primary">Go to dashboard</a>
+        {% else %}
+            <h2 class="cta-title">Ready to take control?</h2>
+            <p class="cta-body">Join thousands of people who track their expenses with Spendly.</p>
+            <a href="{{ url_for('register') }}" class="btn-primary">Create free account</a>
+        {% endif %}
     </div>
 </section>
 

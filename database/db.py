@@ -65,6 +65,20 @@ def create_user(name, email, password_hash):
     return user_id
 
 
+def update_user_name(user_id, name):
+    conn = get_db()
+    conn.execute("UPDATE users SET name = ? WHERE id = ?", (name, user_id))
+    conn.commit()
+    conn.close()
+
+
+def update_user_password(user_id, password_hash):
+    conn = get_db()
+    conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+    conn.commit()
+    conn.close()
+
+
 def seed_db():
     conn = get_db()
     count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]

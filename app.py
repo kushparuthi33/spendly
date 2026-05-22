@@ -1,7 +1,12 @@
 import os
+from datetime import datetime
 from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id
+from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id, update_user_name, update_user_password
+
+def _format_member_since(created_at):
+    return datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").strftime("%B %-d, %Y")
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-spendly")
@@ -102,9 +107,54 @@ def logout():
     return redirect(request.referrer or url_for("landing"))
 
 
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 def profile():
-    return "Profile page — coming in Step 4"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user = get_user_by_id(session["user_id"])
+    member_since = _format_member_since(user["created_at"])
+
+    if request.method == "GET":
+        return render_template("profile.html", user=user, member_since=member_since)
+
+    action = request.form.get("action", "")
+
+    if action == "update_name":
+        name = request.form.get("name", "").strip()
+        if not name:
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_name="Name is required.")
+        if len(name) > 100:
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_name="Name must be 100 characters or fewer.", name_value=name)
+        update_user_name(session["user_id"], name)
+        session["user_name"] = name
+        user = get_user_by_id(session["user_id"])
+        return render_template("profile.html", user=user, member_since=member_since,
+                               success_name="Name updated successfully.")
+
+    if action == "change_password":
+        current_pw = request.form.get("current_password", "")
+        new_pw     = request.form.get("new_password", "")
+        confirm_pw = request.form.get("confirm_password", "")
+        if not check_password_hash(user["password_hash"], current_pw):
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_password="Current password is incorrect.")
+        if new_pw == current_pw:
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_password="New password must be different from your current password.")
+        if len(new_pw) < 8:
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_password="New password must be at least 8 characters.")
+        if new_pw != confirm_pw:
+            return render_template("profile.html", user=user, member_since=member_since,
+                                   error_password="New passwords do not match.")
+        update_user_password(session["user_id"], generate_password_hash(new_pw))
+        return render_template("profile.html", user=user, member_since=member_since,
+                               success_password="Password changed successfully.")
+
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/add")
