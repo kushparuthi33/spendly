@@ -205,9 +205,60 @@ def add_expense():
     return "Add expense — coming in Step 7"
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    from database.db import get_expense_by_id, update_expense
+    from flask import abort
+    expense = get_expense_by_id(id)
+    if expense is None:
+        abort(404)
+    if expense["user_id"] != session["user_id"]:
+        abort(403)
+    if request.method == "GET":
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            amount_value=expense["amount"],
+            category_value=expense["category"],
+            date_value=expense["date"],
+            description_value=expense["description"] or "",
+        )
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date        = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        amount = float(amount_raw)
+        if amount <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Please enter a valid amount greater than 0.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if category not in EXPENSE_CATEGORIES:
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Please select a valid category.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if not date:
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Date is required.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    update_expense(id, amount, category, date, description)
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/expenses/<int:id>/delete")
