@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-container">
+
+        <div class="auth-header">
+            <h1 class="auth-title">Your Profile</h1>
+            <p class="auth-subtitle">Manage your account details</p>
+        </div>
+
+        <!-- Account Info -->
+        <div class="auth-card" style="margin-bottom: 1.5rem">
+            <h2 class="profile-section-title">Account Info</h2>
+            <div class="profile-field">
+                <span class="profile-label">Name</span>
+                <span class="profile-value">{{ user["name"] }}</span>
+            </div>
+            <div class="profile-field">
+                <span class="profile-label">Email</span>
+                <span class="profile-value">{{ user["email"] }}</span>
+            </div>
+            <div class="profile-field">
+                <span class="profile-label">Member since</span>
+                <span class="profile-value">{{ member_since }}</span>
+            </div>
+        </div>
+
+        <!-- Edit Name -->
+        <div class="auth-card" style="margin-bottom: 1.5rem">
+            <h2 class="profile-section-title">Edit Name</h2>
+            {% if success_name %}
+                <div class="auth-success">{{ success_name }}</div>
+            {% endif %}
+            {% if error_name %}
+                <div class="auth-error">{{ error_name }}</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="update_name">
+                <div class="form-group">
+                    <label for="name">Display name</label>
+                    <input type="text" id="name" name="name" class="form-input"
+                           value="{{ name_value if name_value else user['name'] }}"
+                           required maxlength="100">
+                </div>
+                <button type="submit" class="btn-submit">Save name</button>
+            </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="auth-card">
+            <h2 class="profile-section-title">Change Password</h2>
+            {% if success_password %}
+                <div class="auth-success">{{ success_password }}</div>
+            {% endif %}
+            {% if error_password %}
+                <div class="auth-error">{{ error_password }}</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="change_password">
+                <div class="form-group">
+                    <label for="current_password">Current password</label>
+                    <input type="password" id="current_password" name="current_password"
+                           class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">New password</label>
+                    <input type="password" id="new_password" name="new_password"
+                           class="form-input" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm new password</label>
+                    <input type="password" id="confirm_password" name="confirm_password"
+                           class="form-input" required>
+                </div>
+                <button type="submit" class="btn-submit">Change password</button>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
