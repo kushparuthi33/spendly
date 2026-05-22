@@ -46,11 +46,9 @@
                 </tbody>
             </table>
 
-            <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md); align-items: center;">
-                <button type="submit" class="btn-submit" style="width: auto; padding: 0 var(--space-xl);">
-                    Import Selected
-                </button>
-                <a href="{{ url_for('dashboard') }}" class="auth-switch" style="margin: 0;">Cancel</a>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+                <button type="submit" class="btn-primary">Import Selected</button>
+                <a href="{{ url_for('dashboard') }}" class="btn-ghost">Cancel</a>
             </div>
         </form>
     </div>

@@ -27,11 +27,6 @@
                 </div>
                 <p class="auth-switch" style="margin-top: 0; margin-bottom: var(--space-md);">
                     Export your statement from your bank's app or internet banking as a CSV file (max 1 MB).
-                    {% if ai_mode %}
-                    Transactions will be categorised using <strong>Claude AI</strong>.
-                    {% else %}
-                    Transactions will be categorised using <strong>keyword matching</strong> (set <code>ANTHROPIC_API_KEY</code> for smarter AI categorisation).
-                    {% endif %}
                 </p>
                 <button type="submit" class="btn-submit">Parse Statement</button>
             </form>

@@ -330,8 +330,7 @@ def import_statement():
     if "user_id" not in session:
         return redirect(url_for("login"))
     if request.method == "GET":
-        ai_mode = bool(os.environ.get("ANTHROPIC_API_KEY"))
-        return render_template("import/upload.html", ai_mode=ai_mode)
+        return render_template("import/upload.html")
 
     f = request.files.get("file")
     if not f or not f.filename:
