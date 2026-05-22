@@ -94,7 +94,9 @@ def dashboard():
     uid = session["user_id"]
     now = datetime.now()
     hour = now.hour
-    if hour < 12:
+    if hour < 6:
+        greeting = "Good night"
+    elif hour < 12:
         greeting = "Good morning"
     elif hour < 18:
         greeting = "Good afternoon"

@@ -55,7 +55,7 @@
     </div>
 
     <div class="dashboard-section">
-        <h2 class="dashboard-section-title">All Expenses</h2>
+        <h2 class="dashboard-section-title">Last 30 Expenses</h2>
         {% if expenses %}
         <div class="auth-card" style="padding: 0; overflow: hidden;">
             <table class="expense-table">
@@ -90,7 +90,7 @@
 <script>
     (function () {
         var hour = new Date().getHours();
-        var word = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+        var word = hour < 6 ? "Good night" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
         var el = document.getElementById("greeting-heading");
         if (el) el.textContent = word + ", {{ name }}!";
     })();
