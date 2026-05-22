@@ -2,7 +2,9 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id, update_user_name, update_user_password
+from database.db import (get_db, init_db, seed_db, create_user, get_user_by_email,
+    get_user_by_id, update_user_name, update_user_password,
+    get_expenses_by_user, get_monthly_total, get_category_totals, get_expense_count)
 
 def _format_member_since(created_at):
     return datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").strftime("%B %-d, %Y")
@@ -84,7 +86,45 @@ def login():
 def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    return render_template("dashboard.html", name=session["user_name"])
+
+    uid = session["user_id"]
+    now = datetime.now()
+    hour = now.hour
+    if hour < 12:
+        greeting = "Good morning"
+    elif hour < 18:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
+
+    expenses = get_expenses_by_user(uid)
+    monthly_total, monthly_count = get_monthly_total(uid, now.year, now.month)
+    category_totals = get_category_totals(uid)
+    total_count = get_expense_count(uid)
+
+    top_category = category_totals[0]["category"] if category_totals else "—"
+    max_cat_total = category_totals[0]["total"] if category_totals else 1
+
+    categories = [
+        {
+            "name": row["category"],
+            "total": row["total"],
+            "pct": round(row["total"] / max_cat_total * 100),
+        }
+        for row in category_totals
+    ]
+
+    return render_template(
+        "dashboard.html",
+        greeting=greeting,
+        name=session["user_name"],
+        expenses=expenses,
+        monthly_total=monthly_total,
+        monthly_count=monthly_count,
+        total_count=total_count,
+        top_category=top_category,
+        categories=categories,
+    )
 
 
 # ------------------------------------------------------------------ #

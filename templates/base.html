@@ -21,6 +21,9 @@
             <div class="nav-links">
                 {% if session.user_id %}
                     <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                    {% if request.path != '/dashboard' %}
+                        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    {% endif %}
                     {% if request.path != '/profile' %}
                         <a href="{{ url_for('profile') }}">View profile</a>
                     {% endif %}

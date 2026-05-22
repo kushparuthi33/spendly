@@ -4,14 +4,83 @@
 
 {% block content %}
 
-<section class="auth-section">
-    <div class="auth-container">
-        <div class="auth-header">
-            <h1 class="auth-title">Welcome, {{ name }}!</h1>
-            <p class="auth-subtitle">Your expense dashboard is coming soon.</p>
-            <a href="{{ url_for('logout') }}" class="btn-submit">Sign out</a>
+<div class="dashboard-page">
+
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-heading">{{ greeting }}, {{ name }}!</h1>
+            <p class="dashboard-subheading">Here's your financial overview.</p>
+        </div>
+        <a href="{{ url_for('add_expense') }}" class="btn-primary">+ Add expense</a>
+    </div>
+
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <p class="stat-label">This Month</p>
+            <p class="stat-value">&#8377;{{ "%.2f"|format(monthly_total) }}</p>
+            <p class="stat-sub">{{ monthly_count }} expense{{ 's' if monthly_count != 1 }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Total Expenses</p>
+            <p class="stat-value">{{ total_count }}</p>
+            <p class="stat-sub">all time</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Top Category</p>
+            <p class="stat-value stat-value--category">{{ top_category }}</p>
+            <p class="stat-sub">highest spend</p>
         </div>
     </div>
-</section>
+
+    <div class="dashboard-section">
+        <h2 class="dashboard-section-title">Spending by Category</h2>
+        {% if categories %}
+        <div class="auth-card cat-list">
+            {% for cat in categories %}
+            <div class="cat-row">
+                <span class="cat-name">{{ cat.name }}</span>
+                <div class="cat-bar-track">
+                    <div class="cat-bar-fill cat-bar-fill--{{ loop.index0 % 7 }}" style="width: {{ cat.pct }}%"></div>
+                </div>
+                <span class="cat-amount">&#8377;{{ "%.2f"|format(cat.total) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">No spending data yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2 class="dashboard-section-title">All Expenses</h2>
+        {% if expenses %}
+        <div class="auth-card" style="padding: 0; overflow: hidden;">
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in expenses %}
+                    <tr>
+                        <td>{{ e.date }}</td>
+                        <td>{{ e.description or '—' }}</td>
+                        <td><span class="cat-badge">{{ e.category }}</span></td>
+                        <td class="amount-cell">&#8377;{{ "%.2f"|format(e.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">No expenses yet. Add your first one!</p>
+        {% endif %}
+    </div>
+
+</div>
 
 {% endblock %}

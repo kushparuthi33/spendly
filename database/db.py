@@ -79,6 +79,49 @@ def update_user_password(user_id, password_hash):
     conn.close()
 
 
+def get_expenses_by_user(user_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_monthly_total(user_id, year, month):
+    conn = get_db()
+    row = conn.execute(
+        """SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
+           FROM expenses
+           WHERE user_id = ? AND strftime('%Y', date) = ? AND strftime('%m', date) = ?""",
+        (user_id, str(year), f"{month:02d}")
+    ).fetchone()
+    conn.close()
+    return row["total"], row["count"]
+
+
+def get_category_totals(user_id):
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT category, SUM(amount) AS total
+           FROM expenses WHERE user_id = ?
+           GROUP BY category ORDER BY total DESC""",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_expense_count(user_id):
+    conn = get_db()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM expenses WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    conn.close()
+    return count
+
+
 def seed_db():
     conn = get_db()
     count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
