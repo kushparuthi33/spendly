@@ -79,11 +79,11 @@ def update_user_password(user_id, password_hash):
     conn.close()
 
 
-def get_expenses_by_user(user_id):
+def get_expenses_by_user(user_id, limit=30):
     conn = get_db()
     rows = conn.execute(
-        "SELECT * FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC",
-        (user_id,)
+        "SELECT * FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
+        (user_id, limit)
     ).fetchall()
     conn.close()
     return rows
