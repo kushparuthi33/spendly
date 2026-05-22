@@ -18,6 +18,9 @@ with app.app_context():
     seed_db()
 
 
+EXPENSE_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+
+
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
@@ -197,19 +200,125 @@ def profile():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    from database.db import create_expense
+    today = datetime.now().strftime("%Y-%m-%d")
+    if request.method == "GET":
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES,
+            today=today,
+        )
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date        = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        amount = float(amount_raw)
+        if amount <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Please enter a valid amount greater than 0.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if category not in EXPENSE_CATEGORIES:
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Please select a valid category.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if not date:
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Date is required.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    create_expense(session["user_id"], amount, category, date, description)
+    return redirect(url_for("dashboard"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    from database.db import get_expense_by_id, update_expense
+    from flask import abort
+    expense = get_expense_by_id(id)
+    if expense is None:
+        abort(404)
+    if expense["user_id"] != session["user_id"]:
+        abort(403)
+    if request.method == "GET":
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            amount_value=expense["amount"],
+            category_value=expense["category"],
+            date_value=expense["date"],
+            description_value=expense["description"] or "",
+        )
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date        = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        amount = float(amount_raw)
+        if amount <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Please enter a valid amount greater than 0.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if category not in EXPENSE_CATEGORIES:
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Please select a valid category.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if not date:
+        return render_template(
+            "expenses/edit.html",
+            categories=EXPENSE_CATEGORIES,
+            error="Date is required.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    update_expense(id, amount, category, date, description)
+    return redirect(url_for("dashboard"))
 
 
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["GET", "POST"])
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    from database.db import get_expense_by_id, remove_expense
+    from flask import abort
+    if request.method == "GET":
+        return redirect(url_for("dashboard"))
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    expense = get_expense_by_id(id)
+    if expense is None:
+        abort(404)
+    if expense["user_id"] != session["user_id"]:
+        abort(403)
+    remove_expense(id)
+    return redirect(url_for("dashboard"))
 
 
 if __name__ == "__main__":
