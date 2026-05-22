@@ -4,7 +4,8 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import (get_db, init_db, seed_db, create_user, get_user_by_email,
     get_user_by_id, update_user_name, update_user_password,
-    get_expenses_by_user, get_monthly_total, get_category_totals, get_expense_count)
+    get_expenses_by_user, get_monthly_total, get_category_totals, get_expense_count,
+    bulk_insert_expenses)
 
 def _format_member_since(created_at):
     return datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").strftime("%B %-d, %Y")
@@ -318,6 +319,88 @@ def delete_expense(id):
     if expense["user_id"] != session["user_id"]:
         abort(403)
     remove_expense(id)
+    return redirect(url_for("dashboard"))
+
+
+MAX_UPLOAD_BYTES = 1 * 1024 * 1024  # 1 MB
+
+
+@app.route("/import", methods=["GET", "POST"])
+def import_statement():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if request.method == "GET":
+        return render_template("import/upload.html")
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return render_template("import/upload.html", error="Please select a CSV file.")
+    if not f.filename.lower().endswith(".csv"):
+        return render_template("import/upload.html", error="Only CSV files are accepted.")
+    raw = f.read(MAX_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_UPLOAD_BYTES:
+        return render_template("import/upload.html", error="File is too large (max 1 MB).")
+    csv_text = raw.decode("utf-8", errors="replace")
+    if not csv_text.strip():
+        return render_template("import/upload.html", error="The uploaded file is empty.")
+
+    from utils.statement_parser import parse_statement, parse_statement_rules, ParseError
+    try:
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            rows = parse_statement(csv_text)
+        else:
+            rows = parse_statement_rules(csv_text)
+    except (ParseError, EnvironmentError) as e:
+        return render_template("import/upload.html", error=str(e))
+
+    if not rows:
+        return render_template("import/upload.html",
+                               error="No expense transactions were found in the file.")
+
+    session["import_rows"] = rows
+    return redirect(url_for("import_preview"))
+
+
+@app.route("/import/preview")
+def import_preview():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    rows = session.get("import_rows")
+    if not rows:
+        return redirect(url_for("import_statement"))
+    return render_template("import/preview.html",
+                           rows=rows,
+                           categories=EXPENSE_CATEGORIES)
+
+
+@app.route("/import/confirm", methods=["POST"])
+def import_confirm():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    rows = session.get("import_rows", [])
+    selected_indices = request.form.getlist("row_index")
+    category_overrides = request.form.getlist("category")
+
+    to_insert = []
+    for idx_str, cat in zip(selected_indices, category_overrides):
+        try:
+            row = rows[int(idx_str)]
+        except (ValueError, IndexError):
+            continue
+        if cat not in EXPENSE_CATEGORIES:
+            cat = row["category"]
+        to_insert.append({
+            "user_id":     session["user_id"],
+            "amount":      row["amount"],
+            "category":    cat,
+            "date":        row["date"],
+            "description": row["description"],
+        })
+
+    if to_insert:
+        bulk_insert_expenses(to_insert)
+
+    session.pop("import_rows", None)
     return redirect(url_for("dashboard"))
 
 

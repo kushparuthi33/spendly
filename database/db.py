@@ -160,6 +160,21 @@ def remove_expense(expense_id):
     conn.close()
 
 
+def bulk_insert_expenses(rows):
+    conn = get_db()
+    try:
+        conn.executemany(
+            "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+            [(r["user_id"], r["amount"], r["category"], r["date"], r["description"]) for r in rows],
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def seed_db():
     conn = get_db()
     count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
