@@ -63,9 +63,10 @@ _CATEGORY_KEYWORDS = [
 ]
 
 _DATE_FORMATS = [
-    "%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y",
-    "%Y-%m-%d", "%Y/%m/%d",
-    "%d %b %Y", "%d-%b-%Y", "%d/%b/%Y",
+    "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y",
+    "%d/%m/%y", "%d-%m-%y", "%d.%m.%y",
+    "%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d",
+    "%d %b %Y", "%d-%b-%Y", "%d/%b/%Y", "%d.%b.%Y",
     "%d %B %Y", "%d-%B-%Y",
 ]
 
