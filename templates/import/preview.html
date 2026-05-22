@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Review Transactions — Spendly{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-page">
+
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-heading">Review Transactions</h1>
+            <p class="dashboard-subheading">{{ rows|length }} transaction{{ 's' if rows|length != 1 }} found — uncheck any you don't want to import</p>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <form method="POST" action="{{ url_for('import_confirm') }}">
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Import</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="amount-cell">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="row_index" value="{{ loop.index0 }}" checked>
+                        </td>
+                        <td>{{ row.date }}</td>
+                        <td>{{ row.description }}</td>
+                        <td>
+                            <select name="category" class="form-input">
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if cat == row.category %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="amount-cell">₹{{ "%.2f"|format(row.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md); align-items: center;">
+                <button type="submit" class="btn-submit" style="width: auto; padding: 0 var(--space-xl);">
+                    Import Selected
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="auth-switch" style="margin: 0;">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
