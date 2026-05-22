@@ -200,9 +200,52 @@ def profile():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    from database.db import create_expense
+    today = datetime.now().strftime("%Y-%m-%d")
+    if request.method == "GET":
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES,
+            today=today,
+        )
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date        = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        amount = float(amount_raw)
+        if amount <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Please enter a valid amount greater than 0.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if category not in EXPENSE_CATEGORIES:
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Please select a valid category.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    if not date:
+        return render_template(
+            "expenses/add.html",
+            categories=EXPENSE_CATEGORIES, today=today,
+            error="Date is required.",
+            amount_value=amount_raw, category_value=category,
+            date_value=date, description_value=description,
+        )
+    create_expense(session["user_id"], amount, category, date, description)
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])

@@ -122,6 +122,18 @@ def get_expense_count(user_id):
     return count
 
 
+def create_expense(user_id, amount, category, date, description):
+    conn = get_db()
+    cursor = conn.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, category, date, description),
+    )
+    conn.commit()
+    expense_id = cursor.lastrowid
+    conn.close()
+    return expense_id
+
+
 def get_expense_by_id(expense_id):
     conn = get_db()
     expense = conn.execute(
