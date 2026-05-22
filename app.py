@@ -330,7 +330,8 @@ def import_statement():
     if "user_id" not in session:
         return redirect(url_for("login"))
     if request.method == "GET":
-        return render_template("import/upload.html")
+        ai_mode = bool(os.environ.get("ANTHROPIC_API_KEY"))
+        return render_template("import/upload.html", ai_mode=ai_mode)
 
     f = request.files.get("file")
     if not f or not f.filename:
@@ -344,9 +345,12 @@ def import_statement():
     if not csv_text.strip():
         return render_template("import/upload.html", error="The uploaded file is empty.")
 
-    from utils.statement_parser import parse_statement, ParseError
+    from utils.statement_parser import parse_statement, parse_statement_rules, ParseError
     try:
-        rows = parse_statement(csv_text)
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            rows = parse_statement(csv_text)
+        else:
+            rows = parse_statement_rules(csv_text)
     except (ParseError, EnvironmentError) as e:
         return render_template("import/upload.html", error=str(e))
 
