@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import (get_db, init_db, seed_db, create_user, get_user_by_email,
@@ -20,6 +20,35 @@ with app.app_context():
 
 
 EXPENSE_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+
+_MIN_DATE = date(2000, 1, 1)
+
+
+def resolve_date_filter(args, today):
+    """Return (from_date, to_date, active_preset) as date objects (or None)."""
+    preset = args.get("preset", "").strip()
+
+    if preset == "this_month":
+        return date(today.year, today.month, 1), today, preset
+    if preset == "last_3_months":
+        return today - timedelta(days=90), today, preset
+    if preset == "last_6_months":
+        return today - timedelta(days=180), today, preset
+
+    fd_raw = args.get("from_date", "").strip()
+    td_raw = args.get("to_date",   "").strip()
+    if fd_raw and td_raw:
+        try:
+            fd = datetime.strptime(fd_raw, "%Y-%m-%d").date()
+            td = datetime.strptime(td_raw, "%Y-%m-%d").date()
+            if fd > td:
+                fd, td = td, fd
+            if fd >= _MIN_DATE and td <= today:
+                return fd, td, ""
+        except ValueError:
+            pass
+
+    return None, None, ""
 
 
 # ------------------------------------------------------------------ #
@@ -92,8 +121,7 @@ def dashboard():
         return redirect(url_for("login"))
 
     uid = session["user_id"]
-    now = datetime.now()
-    hour = now.hour
+    hour = datetime.now().hour
     if hour < 6:
         greeting = "Good night"
     elif hour < 12:
@@ -103,14 +131,25 @@ def dashboard():
     else:
         greeting = "Good evening"
 
-    expenses = get_expenses_by_user(uid)
-    monthly_total, monthly_count = get_monthly_total(uid, now.year, now.month)
-    category_totals = get_category_totals(uid)
-    total_count = get_expense_count(uid)
-    total_spent = get_total_spent(uid)
+    today = date.today()
+    fd, td, active_preset = resolve_date_filter(request.args, today)
 
-    top_category = category_totals[0]["category"] if category_totals else "—"
-    max_cat_total = category_totals[0]["total"] if category_totals else 1
+    if fd and td:
+        active_label  = f"{fd.strftime('%d %b %Y')} – {td.strftime('%d %b %Y')}"
+        from_date     = fd.strftime("%Y-%m-%d")
+        to_date       = td.strftime("%Y-%m-%d")
+    else:
+        active_label  = None
+        from_date     = None
+        to_date       = None
+
+    expenses        = get_expenses_by_user(uid, from_date=from_date, to_date=to_date)
+    category_totals = get_category_totals(uid, from_date=from_date, to_date=to_date)
+    total_count     = get_expense_count(uid,   from_date=from_date, to_date=to_date)
+    total_spent     = get_total_spent(uid,     from_date=from_date, to_date=to_date)
+
+    top_category  = category_totals[0]["category"] if category_totals else "—"
+    max_cat_total = category_totals[0]["total"]    if category_totals else 1
 
     categories = [
         {
@@ -126,12 +165,15 @@ def dashboard():
         greeting=greeting,
         name=session["user_name"],
         expenses=expenses,
-        monthly_total=monthly_total,
-        monthly_count=monthly_count,
         total_count=total_count,
         total_spent=total_spent,
         top_category=top_category,
         categories=categories,
+        from_date=from_date,
+        to_date=to_date,
+        active_preset=active_preset,
+        active_label=active_label,
+        today=today.strftime("%Y-%m-%d"),
     )
 
 

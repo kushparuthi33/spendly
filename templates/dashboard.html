@@ -17,16 +17,44 @@
         </div>
     </div>
 
+    <div class="filter-bar">
+        <div class="filter-presets">
+            <a href="{{ url_for('dashboard', preset='this_month') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'this_month' else '' }}">This month</a>
+            <a href="{{ url_for('dashboard', preset='last_3_months') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'last_3_months' else '' }}">Last 3 months</a>
+            <a href="{{ url_for('dashboard', preset='last_6_months') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'last_6_months' else '' }}">Last 6 months</a>
+            <a href="{{ url_for('dashboard') }}"
+               class="filter-preset {{ 'is-active' if (active_preset == 'all_time' or (not active_preset and not from_date)) else '' }}">All time</a>
+        </div>
+        <div class="filter-divider"></div>
+        <form class="filter-custom" method="get" action="{{ url_for('dashboard') }}">
+            <input type="date" name="from_date" class="form-input"
+                   value="{{ from_date or '' }}" max="{{ today }}">
+            <span class="filter-to-label">to</span>
+            <input type="date" name="to_date" class="form-input"
+                   value="{{ to_date or '' }}" max="{{ today }}">
+            <button type="submit" class="btn-ghost">Apply</button>
+        </form>
+        {% if active_label %}
+        <div class="filter-active-label">
+            Showing: <strong>{{ active_label }}</strong>
+            <a href="{{ url_for('dashboard') }}" class="filter-clear">Clear</a>
+        </div>
+        {% endif %}
+    </div>
+
     <div class="dashboard-stats">
         <div class="stat-card">
             <p class="stat-label">Total Spent</p>
             <p class="stat-value">&#8377;{{ "%.2f"|format(total_spent) }}</p>
-            <p class="stat-sub">{{ total_count }} expense{{ 's' if total_count != 1 }} all time</p>
+            <p class="stat-sub">{{ total_count }} expense{{ 's' if total_count != 1 }} {{ 'in this period' if active_label else 'all time' }}</p>
         </div>
         <div class="stat-card">
             <p class="stat-label">Total Expenses</p>
             <p class="stat-value">{{ total_count }}</p>
-            <p class="stat-sub">all time</p>
+            <p class="stat-sub">{{ 'in this period' if active_label else 'all time' }}</p>
         </div>
         <div class="stat-card">
             <p class="stat-label">Top Category</p>

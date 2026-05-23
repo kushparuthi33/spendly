@@ -906,6 +906,64 @@ a { color: inherit; text-decoration: none; }
     border-radius: var(--radius-md);
 }
 
+/* ── Date Filter Bar ──────────────────────────────────────────────── */
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 0.875rem 1.25rem;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.filter-presets { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.filter-preset {
+    padding: 0.35rem 0.875rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    background: transparent;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.filter-preset:hover { border-color: var(--ink); color: var(--ink); }
+
+.filter-preset.is-active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+}
+
+.filter-divider { width: 1px; height: 1.5rem; background: var(--border); }
+
+.filter-custom { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.filter-custom .form-input { width: auto; padding: 0.35rem 0.6rem; font-size: 0.85rem; }
+.filter-custom .btn-ghost  { padding: 0.35rem 0.875rem; font-size: 0.85rem; }
+
+.filter-to-label { font-size: 0.85rem; color: var(--ink-muted); }
+
+.filter-active-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-left: auto;
+}
+
+.filter-active-label strong { color: var(--ink-soft); }
+
+.filter-clear { font-size: 0.82rem; color: var(--ink-muted); text-decoration: underline; }
+.filter-clear:hover { color: var(--danger); }
+
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
