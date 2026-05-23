@@ -79,12 +79,21 @@ def update_user_password(user_id, password_hash):
     conn.close()
 
 
-def get_expenses_by_user(user_id):
+def _apply_date_filter(sql, params, from_date, to_date):
+    if from_date and to_date:
+        sql += " AND date BETWEEN ? AND ?"
+        params += [from_date, to_date]
+    return sql, params
+
+
+def get_expenses_by_user(user_id, limit=30, from_date=None, to_date=None):
     conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC",
-        (user_id,)
-    ).fetchall()
+    sql = "SELECT * FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    sql, params = _apply_date_filter(sql, params, from_date, to_date)
+    sql += " ORDER BY date DESC, id DESC LIMIT ?"
+    params.append(limit)
+    rows = conn.execute(sql, params).fetchall()
     conn.close()
     return rows
 
@@ -101,25 +110,35 @@ def get_monthly_total(user_id, year, month):
     return row["total"], row["count"]
 
 
-def get_category_totals(user_id):
+def get_category_totals(user_id, from_date=None, to_date=None):
     conn = get_db()
-    rows = conn.execute(
-        """SELECT category, SUM(amount) AS total
-           FROM expenses WHERE user_id = ?
-           GROUP BY category ORDER BY total DESC""",
-        (user_id,)
-    ).fetchall()
+    sql = "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    sql, params = _apply_date_filter(sql, params, from_date, to_date)
+    sql += " GROUP BY category ORDER BY total DESC"
+    rows = conn.execute(sql, params).fetchall()
     conn.close()
     return rows
 
 
-def get_expense_count(user_id):
+def get_expense_count(user_id, from_date=None, to_date=None):
     conn = get_db()
-    count = conn.execute(
-        "SELECT COUNT(*) FROM expenses WHERE user_id = ?", (user_id,)
-    ).fetchone()[0]
+    sql = "SELECT COUNT(*) FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    sql, params = _apply_date_filter(sql, params, from_date, to_date)
+    count = conn.execute(sql, params).fetchone()[0]
     conn.close()
     return count
+
+
+def get_total_spent(user_id, from_date=None, to_date=None):
+    conn = get_db()
+    sql = "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    sql, params = _apply_date_filter(sql, params, from_date, to_date)
+    total = conn.execute(sql, params).fetchone()[0]
+    conn.close()
+    return total
 
 
 def create_expense(user_id, amount, category, date, description):

@@ -8,7 +8,7 @@
 
     <div class="dashboard-header">
         <div>
-            <h1 class="dashboard-heading">{{ greeting }}, {{ name }}!</h1>
+            <h1 class="dashboard-heading" id="greeting-heading">{{ greeting }}, {{ name }}!</h1>
             <p class="dashboard-subheading">Here's your financial overview.</p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
@@ -17,16 +17,44 @@
         </div>
     </div>
 
+    <div class="filter-bar">
+        <div class="filter-presets">
+            <a href="{{ url_for('dashboard', preset='this_month') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'this_month' else '' }}">This month</a>
+            <a href="{{ url_for('dashboard', preset='last_3_months') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'last_3_months' else '' }}">Last 3 months</a>
+            <a href="{{ url_for('dashboard', preset='last_6_months') }}"
+               class="filter-preset {{ 'is-active' if active_preset == 'last_6_months' else '' }}">Last 6 months</a>
+            <a href="{{ url_for('dashboard') }}"
+               class="filter-preset {{ 'is-active' if (active_preset == 'all_time' or (not active_preset and not from_date)) else '' }}">All time</a>
+        </div>
+        <div class="filter-divider"></div>
+        <form class="filter-custom" method="get" action="{{ url_for('dashboard') }}">
+            <input type="date" name="from_date" class="form-input"
+                   value="{{ from_date or '' }}" max="{{ today }}">
+            <span class="filter-to-label">to</span>
+            <input type="date" name="to_date" class="form-input"
+                   value="{{ to_date or '' }}" max="{{ today }}">
+            <button type="submit" class="btn-ghost">Apply</button>
+        </form>
+        {% if active_label %}
+        <div class="filter-active-label">
+            Showing: <strong>{{ active_label }}</strong>
+            <a href="{{ url_for('dashboard') }}" class="filter-clear">Clear</a>
+        </div>
+        {% endif %}
+    </div>
+
     <div class="dashboard-stats">
         <div class="stat-card">
-            <p class="stat-label">This Month</p>
-            <p class="stat-value">&#8377;{{ "%.2f"|format(monthly_total) }}</p>
-            <p class="stat-sub">{{ monthly_count }} expense{{ 's' if monthly_count != 1 }}</p>
+            <p class="stat-label">Total Spent</p>
+            <p class="stat-value">&#8377;{{ "%.2f"|format(total_spent) }}</p>
+            <p class="stat-sub">{{ total_count }} expense{{ 's' if total_count != 1 }} {{ 'in this period' if active_label else 'all time' }}</p>
         </div>
         <div class="stat-card">
             <p class="stat-label">Total Expenses</p>
             <p class="stat-value">{{ total_count }}</p>
-            <p class="stat-sub">all time</p>
+            <p class="stat-sub">{{ 'in this period' if active_label else 'all time' }}</p>
         </div>
         <div class="stat-card">
             <p class="stat-label">Top Category</p>
@@ -55,7 +83,7 @@
     </div>
 
     <div class="dashboard-section">
-        <h2 class="dashboard-section-title">All Expenses</h2>
+        <h2 class="dashboard-section-title">Recent Transactions</h2>
         {% if expenses %}
         <div class="auth-card" style="padding: 0; overflow: hidden;">
             <table class="expense-table">
@@ -85,5 +113,16 @@
     </div>
 
 </div>
+
+{% block scripts %}
+<script>
+    (function () {
+        var hour = new Date().getHours();
+        var word = hour < 6 ? "Good night" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+        var el = document.getElementById("greeting-heading");
+        if (el) el.textContent = word + ", {{ name }}!";
+    })();
+</script>
+{% endblock %}
 
 {% endblock %}
