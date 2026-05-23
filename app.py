@@ -6,6 +6,7 @@ from database.db import (get_db, init_db, seed_db, create_user, get_user_by_emai
     get_user_by_id, update_user_name, update_user_password,
     get_expenses_by_user, get_monthly_total, get_category_totals, get_expense_count,
     get_total_spent, bulk_insert_expenses)
+from utils.statement_parser import parse_statement_rules, ParseError
 
 def _format_member_since(created_at):
     return datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").strftime("%B %-d, %Y")
@@ -390,13 +391,9 @@ def import_statement():
     if not csv_text.strip():
         return render_template("import/upload.html", error="The uploaded file is empty.")
 
-    from utils.statement_parser import parse_statement, parse_statement_rules, ParseError
     try:
-        if os.environ.get("ANTHROPIC_API_KEY"):
-            rows = parse_statement(csv_text)
-        else:
-            rows = parse_statement_rules(csv_text)
-    except (ParseError, EnvironmentError) as e:
+        rows = parse_statement_rules(csv_text)
+    except ParseError as e:
         return render_template("import/upload.html", error=str(e))
 
     if not rows:
@@ -433,12 +430,11 @@ def import_confirm():
             row = rows[int(idx_str)]
         except (ValueError, IndexError):
             continue
-        if cat not in EXPENSE_CATEGORIES:
-            cat = row["category"]
+        category = cat if cat in EXPENSE_CATEGORIES else row["category"]
         to_insert.append({
             "user_id":     session["user_id"],
             "amount":      row["amount"],
-            "category":    cat,
+            "category":    category,
             "date":        row["date"],
             "description": row["description"],
         })

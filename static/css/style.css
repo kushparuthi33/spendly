@@ -558,6 +558,13 @@ a { color: inherit; text-decoration: none; }
 
 .btn-submit:hover { background: var(--accent); }
 
+.import-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
 .auth-switch {
     text-align: center;
     font-size: 0.875rem;
