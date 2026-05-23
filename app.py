@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import (get_db, init_db, seed_db, create_user, get_user_by_email,
     get_user_by_id, update_user_name, update_user_password,
     get_expenses_by_user, get_monthly_total, get_category_totals, get_expense_count,
-    bulk_insert_expenses)
+    get_total_spent, bulk_insert_expenses)
 
 def _format_member_since(created_at):
     return datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").strftime("%B %-d, %Y")
@@ -107,6 +107,7 @@ def dashboard():
     monthly_total, monthly_count = get_monthly_total(uid, now.year, now.month)
     category_totals = get_category_totals(uid)
     total_count = get_expense_count(uid)
+    total_spent = get_total_spent(uid)
 
     top_category = category_totals[0]["category"] if category_totals else "—"
     max_cat_total = category_totals[0]["total"] if category_totals else 1
@@ -128,6 +129,7 @@ def dashboard():
         monthly_total=monthly_total,
         monthly_count=monthly_count,
         total_count=total_count,
+        total_spent=total_spent,
         top_category=top_category,
         categories=categories,
     )

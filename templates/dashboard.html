@@ -19,9 +19,9 @@
 
     <div class="dashboard-stats">
         <div class="stat-card">
-            <p class="stat-label">This Month</p>
-            <p class="stat-value">&#8377;{{ "%.2f"|format(monthly_total) }}</p>
-            <p class="stat-sub">{{ monthly_count }} expense{{ 's' if monthly_count != 1 }}</p>
+            <p class="stat-label">Total Spent</p>
+            <p class="stat-value">&#8377;{{ "%.2f"|format(total_spent) }}</p>
+            <p class="stat-sub">{{ total_count }} expense{{ 's' if total_count != 1 }} all time</p>
         </div>
         <div class="stat-card">
             <p class="stat-label">Total Expenses</p>
@@ -55,7 +55,7 @@
     </div>
 
     <div class="dashboard-section">
-        <h2 class="dashboard-section-title">Last 30 Expenses</h2>
+        <h2 class="dashboard-section-title">Recent Transactions</h2>
         {% if expenses %}
         <div class="auth-card" style="padding: 0; overflow: hidden;">
             <table class="expense-table">

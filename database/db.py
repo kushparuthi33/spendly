@@ -122,6 +122,15 @@ def get_expense_count(user_id):
     return count
 
 
+def get_total_spent(user_id):
+    conn = get_db()
+    total = conn.execute(
+        "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    conn.close()
+    return total
+
+
 def create_expense(user_id, amount, category, date, description):
     conn = get_db()
     cursor = conn.execute(
