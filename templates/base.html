@@ -27,6 +27,8 @@
                     {% if request.path != '/profile' %}
                         <a href="{{ url_for('profile') }}">View profile</a>
                     {% endif %}
+                    <a href="{{ url_for('analytics') }}"
+                       class="{{ 'nav-link-active' if request.path == '/analytics' else '' }}">Analytics</a>
                     <a href="{{ url_for('logout') }}" class="nav-cta">Sign out</a>
                 {% elif request.path == '/register' %}
                     <a href="{{ url_for('login') }}" class="nav-cta">Sign in</a>

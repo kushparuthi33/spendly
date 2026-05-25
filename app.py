@@ -182,6 +182,13 @@ def dashboard():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
+@app.route("/analytics")
+def analytics():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
