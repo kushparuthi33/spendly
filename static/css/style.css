@@ -345,6 +345,48 @@ a { color: inherit; text-decoration: none; }
     color: var(--ink);
 }
 
+.actions-col { width: 1%; white-space: nowrap; }
+
+.actions-cell {
+    white-space: nowrap;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.75rem 1rem !important;
+}
+
+.delete-form { margin: 0; }
+
+.btn-action {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+    font-family: inherit;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    background: transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    line-height: 1.4;
+}
+
+.btn-action--edit { color: var(--ink-soft); }
+
+.btn-action--edit:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-action--delete { color: var(--danger); }
+
+.btn-action--delete:hover {
+    background: var(--danger-light);
+    border-color: var(--danger);
+}
+
 /* ------------------------------------------------------------------ */
 /* Features section                                                    */
 /* ------------------------------------------------------------------ */
