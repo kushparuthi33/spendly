@@ -235,18 +235,26 @@ def _validate_rows(rows: list) -> list:
     for row in rows:
         try:
             amount = float(row["amount"])
-            assert amount > 0
-            assert row.get("category") in ALLOWED_CATEGORIES
-            date = str(row.get("date", "")).strip()
-            assert date
+            if amount <= 0:
+                continue
+            if row.get("category") not in ALLOWED_CATEGORIES:
+                continue
+            date_str = str(row.get("date", "")).strip()
+            if not date_str:
+                continue
+            try:
+                datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                continue
             description = str(row.get("description", "")).strip()
-            assert description
+            if not description:
+                continue
             valid.append({
-                "date":        date,
+                "date":        date_str,
                 "description": description[:255],
                 "amount":      round(amount, 2),
                 "category":    row["category"],
             })
-        except (KeyError, ValueError, TypeError, AssertionError):
+        except (KeyError, ValueError, TypeError):
             continue
     return valid
